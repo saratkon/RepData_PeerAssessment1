@@ -123,7 +123,7 @@ require(lattice)
 
 ```r
 xaxis.ticks <- seq(0, nrow(steps.per.interval), by = 30)
-xyplot(steps ~ interval, data = steps.per.interval, main = "Mean Steps Per Interval", layout=c(1,1), type=c("l"), scales=list(x=list(at=xaxis.ticks)))
+xyplot(steps ~ interval, data = steps.per.interval, main = "Mean Steps Per Interval ", layout=c(1,1), type=c("l"), scales=list(x=list(at=xaxis.ticks)))
 ```
 
 ![plot of chunk Mean_Steps_Per_Interval](./PA1_template_files/figure-html/Mean_Steps_Per_Interval.png) 

@@ -91,7 +91,7 @@ We plot a time series of the 5-minute interval (x-axis) and the average number o
 require(lattice)
 
 xaxis.ticks <- seq(0, nrow(steps.per.interval), by = 30)
-xyplot(steps ~ interval, data = steps.per.interval, main = "Mean Steps Per Interval", layout=c(1,1), type=c("l"), scales=list(x=list(at=xaxis.ticks)))
+xyplot(steps ~ interval, data = steps.per.interval, main = "Mean Steps Per Interval ", layout=c(1,1), type=c("l"), scales=list(x=list(at=xaxis.ticks)))
 ```
 
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
