@@ -36,15 +36,19 @@ if (file.exists("activity.csv") == TRUE){
         df.org <- read.csv(unz(fileZip,"activity.csv"))
 }
 
-# Convert the date into POSICct
+# Convert the date into POSIXct
 df.org$date <- as.POSIXct(df.org$date)
+
+# Convert the interval into factor
+df.org$interval <- as.factor(df.org$interval)
+
 str(df.org)
 ```
 
 Using the reshape package's melt and cast functions, transform the original data set into required format to answer the questions
 
 ```{r}
-library(reshape)
+require(reshape)
 
 molten <- melt(df.org, id.vars=c("date", "interval"), na.rm=TRUE)
 str(molten)
@@ -84,18 +88,24 @@ steps.per.interval <- cast(molten, interval ~ variable, mean)
 
 We plot a time series of the 5-minute interval (x-axis) and the average number of steps taken, averaged accross all days (y-axis)
 ```{r, Mean_Steps_Per_Interval, fig.height=6}
-par(mar = c(5,4,1,1), las=1)
-with(steps.per.interval, plot(interval, steps, type="l"))
+require(lattice)
+
+xaxis.ticks <- seq(0, nrow(steps.per.interval), by = 30)
+xyplot(steps ~ interval, data = steps.per.interval, main = "Mean Steps Per Interval", layout=c(1,1), type=c("l"), scales=list(x=list(at=xaxis.ticks)))
 ```
 
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 ```{r}
-with(steps.per.interval, interval[which(steps == max(steps))])
+interval.with.maxsteps <- with(steps.per.interval, interval[which(steps == max(steps))])
+```
+
+```
+Interval with maximum steps = `r interval.with.maxsteps`
 ```
 
 ## Imputing missing values
 
-Create a new data frame with the missing values replaces by the mean steps per interval
+Create a new data frame with the missing values replaced by the mean steps per interval
 ```{r}
 df.imp <- df.org
 df.imp$steps <- ifelse(is.na(df.org$steps) == TRUE, steps.per.interval$steps[steps.per.interval$interval %in% df.org$interval], df.org$steps)
@@ -142,7 +152,7 @@ Median number of steps per day = `r sprintf("%04d", median.total.steps.per.day)`
 Create a new variable representing the weekday
 ```{r}
 df.imp$day <- as.factor(ifelse(weekdays(df.imp$date) %in% c("Saturday", "Sunday"), "weekend", "weekday"))
-df.imp$interval <- as.factor(df.imp$interval)
+#df.imp$interval <- as.factor(df.imp$interval)
 ```
 
 Melt this again to cater for the new variable added.

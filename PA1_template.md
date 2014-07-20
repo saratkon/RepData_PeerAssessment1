@@ -33,8 +33,12 @@ if (file.exists("activity.csv") == TRUE){
         df.org <- read.csv(unz(fileZip,"activity.csv"))
 }
 
-# Convert the date into POSICct
+# Convert the date into POSIXct
 df.org$date <- as.POSIXct(df.org$date)
+
+# Convert the interval into factor
+df.org$interval <- as.factor(df.org$interval)
+
 str(df.org)
 ```
 
@@ -42,15 +46,21 @@ str(df.org)
 ## 'data.frame':	17568 obs. of  3 variables:
 ##  $ steps   : int  NA NA NA NA NA NA NA NA NA NA ...
 ##  $ date    : POSIXct, format: "2012-10-01" "2012-10-01" ...
-##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
 ```
 
 Using the reshape package's melt and cast functions, transform the original data set into required format to answer the questions
 
 
 ```r
-library(reshape)
+require(reshape)
+```
 
+```
+## Loading required package: reshape
+```
+
+```r
 molten <- melt(df.org, id.vars=c("date", "interval"), na.rm=TRUE)
 str(molten)
 ```
@@ -58,7 +68,7 @@ str(molten)
 ```
 ## 'data.frame':	15264 obs. of  4 variables:
 ##  $ date    : POSIXct, format: "2012-10-02" "2012-10-02" ...
-##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
 ##  $ variable: Factor w/ 1 level "steps": 1 1 1 1 1 1 1 1 1 1 ...
 ##  $ value   : int  0 0 0 0 0 0 0 0 0 0 ...
 ```
@@ -104,8 +114,16 @@ steps.per.interval <- cast(molten, interval ~ variable, mean)
 We plot a time series of the 5-minute interval (x-axis) and the average number of steps taken, averaged accross all days (y-axis)
 
 ```r
-par(mar = c(5,4,1,1), las=1)
-with(steps.per.interval, plot(interval, steps, type="l"))
+require(lattice)
+```
+
+```
+## Loading required package: lattice
+```
+
+```r
+xaxis.ticks <- seq(0, nrow(steps.per.interval), by = 30)
+xyplot(steps ~ interval, data = steps.per.interval, main = "Mean Steps Per Interval", layout=c(1,1), type=c("l"), scales=list(x=list(at=xaxis.ticks)))
 ```
 
 ![plot of chunk Mean_Steps_Per_Interval](./PA1_template_files/figure-html/Mean_Steps_Per_Interval.png) 
@@ -113,16 +131,16 @@ with(steps.per.interval, plot(interval, steps, type="l"))
 Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 ```r
-with(steps.per.interval, interval[which(steps == max(steps))])
+interval.with.maxsteps <- with(steps.per.interval, interval[which(steps == max(steps))])
 ```
 
 ```
-## [1] 835
+Interval with maximum steps = 835
 ```
 
 ## Imputing missing values
 
-Create a new data frame with the missing values replaces by the mean steps per interval
+Create a new data frame with the missing values replaced by the mean steps per interval
 
 ```r
 df.imp <- df.org
@@ -134,7 +152,7 @@ str(df.imp)
 ## 'data.frame':	17568 obs. of  3 variables:
 ##  $ steps   : num  1.717 0.3396 0.1321 0.1509 0.0755 ...
 ##  $ date    : POSIXct, format: "2012-10-01" "2012-10-01" ...
-##  $ interval: int  0 5 10 15 20 25 30 35 40 45 ...
+##  $ interval: Factor w/ 288 levels "0","5","10","15",..: 1 2 3 4 5 6 7 8 9 10 ...
 ```
 
 Melt the new data frame
@@ -184,7 +202,7 @@ Create a new variable representing the weekday
 
 ```r
 df.imp$day <- as.factor(ifelse(weekdays(df.imp$date) %in% c("Saturday", "Sunday"), "weekend", "weekday"))
-df.imp$interval <- as.factor(df.imp$interval)
+#df.imp$interval <- as.factor(df.imp$interval)
 ```
 
 Melt this again to cater for the new variable added.
@@ -199,13 +217,6 @@ Plot the average steps per interval for the weekend days and week days.
 ```r
 #Create the Weekend vs Weekday plot
 require(lattice)
-```
-
-```
-## Loading required package: lattice
-```
-
-```r
 xaxis.ticks <- seq(0, nrow(weekday.cast), by = 30)
 xyplot(steps ~ interval | day, data = weekday.cast, layout=c(1,2), type=c("l"), scales=list(x=list(at=xaxis.ticks)))
 ```
